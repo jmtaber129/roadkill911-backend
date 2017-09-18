@@ -17,6 +17,7 @@ Endpoints."""
 
 # [START imports]
 import endpoints
+from google.appengine.ext import ndb
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
@@ -41,6 +42,10 @@ ROADKILL_RESOURCE = endpoints.ResourceContainer(
     report_id=messages.StringField(2))
 # [END messages]
 
+class RoadkillReport(ndb.Model):
+    location=ndb.StringProperty()
+    timestamp=ndb.DateTimeProperty(auto_now_add=True)
+
 
 # [START roadkill_api]
 @endpoints.api(name='roadkill', version='v1')
@@ -53,7 +58,8 @@ class RoadkillApi(remote.Service):
         http_method='POST',
         name='report_roadkill')
     def report_roadkill(self, request):
-        report_id = 'some id'
+        report = RoadkillReport(location=request.location)
+        report_id = report.put().urlsafe()
         return SendReportResponse(report_id=report_id)
 
     @endpoints.method(
@@ -63,7 +69,9 @@ class RoadkillApi(remote.Service):
         http_method='GET',
         name='roadkill')
     def get_roadkill_report(self, request):
-        resp = RoadkillReportResponse(location='location', timestamp='timestamp')
+        report_key = ndb.Key(urlsafe=request.report_id)
+        report = report_key.get()
+        resp = RoadkillReportResponse(location=report.location, timestamp=str(report.timestamp))
         return resp
 # [END roadkill_api]
 
