@@ -26,7 +26,8 @@ from protorpc import remote
 
 # [START messages]
 class SendReportRequest(messages.Message):
-    location = messages.StringField(1)
+    latitude = messages.FloatField(1)
+    longitude = messages.FloatField(2)
 
 
 class SendReportResponse(messages.Message):
@@ -34,8 +35,9 @@ class SendReportResponse(messages.Message):
     
    
 class RoadkillReportResponse(messages.Message):
-    location = messages.StringField(1)
-    timestamp = messages.StringField(2)
+    latitude = messages.FloatField(1)
+    longitude = messages.FloatField(2)
+    timestamp = messages.StringField(3)
     
 ROADKILL_RESOURCE = endpoints.ResourceContainer(
     message_types.VoidMessage,
@@ -43,7 +45,8 @@ ROADKILL_RESOURCE = endpoints.ResourceContainer(
 # [END messages]
 
 class RoadkillReport(ndb.Model):
-    location=ndb.StringProperty()
+    latitude=ndb.FloatProperty()
+    longitude=ndb.FloatProperty()
     timestamp=ndb.DateTimeProperty(auto_now_add=True)
 
 
@@ -58,7 +61,7 @@ class RoadkillApi(remote.Service):
         http_method='POST',
         name='report_roadkill')
     def report_roadkill(self, request):
-        report = RoadkillReport(location=request.location)
+        report = RoadkillReport(latitude=request.latitude, longitude=request.longitude)
         report_id = report.put().urlsafe()
         return SendReportResponse(report_id=report_id)
 
@@ -71,7 +74,7 @@ class RoadkillApi(remote.Service):
     def get_roadkill_report(self, request):
         report_key = ndb.Key(urlsafe=request.report_id)
         report = report_key.get()
-        resp = RoadkillReportResponse(location=report.location, timestamp=str(report.timestamp))
+        resp = RoadkillReportResponse(latitude=report.latitude, longitude=report.longitude, timestamp=str(report.timestamp))
         return resp
 # [END roadkill_api]
 
