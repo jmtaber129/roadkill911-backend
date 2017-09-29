@@ -29,4 +29,4 @@ env_variables:
   # The following values are to be replaced by information from the output of
   # 'gcloud service-management deploy swagger.json' command.
   ENDPOINTS_SERVICE_NAME: roadkill911-180223.appspot.com
-  ENDPOINTS_SERVICE_VERSION: 2017-09-19r0
+  ENDPOINTS_SERVICE_VERSION: 2017-09-29r0
