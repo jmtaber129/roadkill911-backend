@@ -2,6 +2,7 @@
 import endpoints
 from google.appengine.api import search
 from google.appengine.ext import ndb
+from google.appengine.ext.ndb import msgprop
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
@@ -12,10 +13,16 @@ REPORT_ID = 'report_id'
 LOCATION = 'location'
 
 # [START messages]
+class ReportStatus(messages.Enum):
+    OPEN = 0
+    IN_PROGRESS = 1
+    CLOSED = 2
+    
+
 class SendReportRequest(messages.Message):
     latitude = messages.FloatField(1)
     longitude = messages.FloatField(2)
-
+    status = messages.EnumField(ReportStatus, 3)
 
 class SendReportResponse(messages.Message):
     report_id = messages.StringField(1)
@@ -25,7 +32,8 @@ class RoadkillReportResponse(messages.Message):
     latitude = messages.FloatField(1)
     longitude = messages.FloatField(2)
     timestamp = messages.StringField(3)
-    report_id = messages.StringField(4)
+    status = messages.EnumField(ReportStatus, 4)
+    report_id = messages.StringField(5)
     
 class GetRadiusReportsRequest(messages.Message):
     latitude = messages.FloatField(1)
@@ -39,12 +47,17 @@ class GetRadiusReportsResponse(messages.Message):
 ROADKILL_RESOURCE = endpoints.ResourceContainer(
     message_types.VoidMessage,
     report_id=messages.StringField(2))
+    
+UPDATE_RESOURCE = endpoints.ResourceContainer(
+    SendReportRequest,
+    report_id=messages.StringField(2))
 # [END messages]
 
 class RoadkillReport(ndb.Model):
     latitude=ndb.FloatProperty()
     longitude=ndb.FloatProperty()
     timestamp=ndb.DateTimeProperty(auto_now_add=True)
+    status=msgprop.EnumProperty(ReportStatus)
 
 
 # [START roadkill_api]
@@ -58,7 +71,7 @@ class RoadkillApi(remote.Service):
         http_method='POST',
         name='report_roadkill')
     def report_roadkill(self, request):
-        report = RoadkillReport(latitude=request.latitude, longitude=request.longitude)
+        report = RoadkillReport(latitude=request.latitude, longitude=request.longitude, status=ReportStatus.OPEN)
         report_id = report.put().urlsafe()
         
         geopoint = search.GeoPoint(request.latitude, request.longitude)
@@ -80,7 +93,7 @@ class RoadkillApi(remote.Service):
     def get_roadkill_report(self, request):
         report_key = ndb.Key(urlsafe=request.report_id)
         report = report_key.get()
-        resp = RoadkillReportResponse(latitude=report.latitude, longitude=report.longitude, timestamp=str(report.timestamp))
+        resp = RoadkillReportResponse(latitude=report.latitude, longitude=report.longitude, timestamp=str(report.timestamp), status=report.status)
         return resp
         
     @endpoints.method(
@@ -98,10 +111,24 @@ class RoadkillApi(remote.Service):
         report_id = doc.doc_id
         report_key = ndb.Key(urlsafe=report_id)
         ndb_report = report_key.get()
-        report = RoadkillReportResponse(latitude=ndb_report.latitude, longitude=ndb_report.longitude, timestamp=str(ndb_report.timestamp))
+        report = RoadkillReportResponse(latitude=ndb_report.latitude, longitude=ndb_report.longitude, timestamp=str(ndb_report.timestamp), status=ndb_report.status)
         reports.append(report)
       resp = GetRadiusReportsResponse(reports=reports)
       return resp
+      
+    @endpoints.method(
+        UPDATE_RESOURCE,
+        SendReportResponse,
+        path='roadkill/{report_id}',
+        http_method='PUT',
+        name='update_roadkill'
+    )
+    def update_roadkill_report(self, request):
+      report_key = ndb.Key(urlsafe=request.report_id)
+      report = report_key.get()
+      report.status = request.status
+      report.put()
+      return SendReportResponse(report_id=request.report_id)
 # [END roadkill_api]
 
 
