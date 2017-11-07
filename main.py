@@ -9,11 +9,13 @@ from protorpc import remote
 # [END imports]
 
 REPORT_INDEX_NAME = 'reportsearch'
-REPORT_ID = 'report_id'Radius
+REPORT_ID = 'report_id'
 LOCATION = 'location'
 GROUP_INDEX_NAME = 'groupsearch'
 GROUP_ID = 'group_id'
 RADIUS = 'radius'
+
+METERS_PER_MILE = 1609.34
 
 # [START messages]
 class ReportStatus(messages.Enum):
@@ -52,7 +54,7 @@ class CreateControlGroupRequest(messages.Message):
     email = messages.StringField(2)
     latitude = messages.FloatField(3)
     longitude = messages.FloatField(4)
-    radius = messages.IntegerField(5)
+    radius = messages.FloatField(5)
     
 class CreateControlGroupResponse(messages.Message):
     group_id = messages.StringField(1)
@@ -85,7 +87,7 @@ class ControlGroup(ndb.Model):
     email=ndb.StringProperty()
     latitude=ndb.FloatProperty()
     longitude=ndb.FloatProperty()
-    radius=ndb.IntegerProperty()
+    radius=ndb.FloatProperty()
 
 
 # [START roadkill_api]
@@ -133,7 +135,7 @@ class RoadkillApi(remote.Service):
     )
     def get_roadkill_in_radius(self, request):
       reports = []
-      query = "distance({}, geopoint({},{})) < {}".format(LOCATION, request.latitude, request.longitude, request.radius)
+      query = "distance({}, geopoint({},{})) < {}".format(LOCATION, request.latitude, request.longitude, request.radius * METERS_PER_MILE)
       results = search.Index(REPORT_INDEX_NAME).search(query)
       for doc in results:
         report_id = doc.doc_id
@@ -166,14 +168,14 @@ class RoadkillApi(remote.Service):
         name='create_control_group'
     )
     def create_control_group(self, request):
-      group = ControlGroup(name=request.name, email=request.email, latitude=request.latitude, longitude=request.longitude, radius=request.radius)
+      group = ControlGroup(name=request.name, email=request.email, latitude=request.latitude, longitude=request.longitude, radius=request.radius*METERS_PER_MILE)
       group_id = group.put().urlsafe()
       
       geopoint = search.GeoPoint(request.latitude, request.longitude)
       index_fields = [
         search.AtomField(name=GROUP_ID, value=group_id),
         search.GeoField(name=LOCATION, value=geopoint),
-        search.NumberField(name=RADIUS, value=request.radius)
+        search.NumberField(name=RADIUS, value=request.radius*METERS_PER_MILE)
       ]
       doc = search.Document(doc_id=group_id, fields=index_fields)
       search.Index(name=GROUP_INDEX_NAME).put(doc)
@@ -202,7 +204,7 @@ class RoadkillApi(remote.Service):
         group_id = doc.doc_id
         group_key = ndb.Key(urlsafe=group_id)
         ndb_group = group_key.get()
-        group = CreateControlGroupRequest(email=ndb_group.email, name=ndb_group.name, latitude=ndb_group.latitude, longitude=ndb_group.longitude, radius=ndb_group.radius)
+        group = CreateControlGroupRequest(email=ndb_group.email, name=ndb_group.name, latitude=ndb_group.latitude, longitude=ndb_group.longitude, radius=ndb_group.radius / METERS_PER_MILE)
         groups.append(group)
       resp = GetNearbyGroupsResponse(groups=groups)
       return resp
