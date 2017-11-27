@@ -1,4 +1,5 @@
 # [START imports]
+import models
 import endpoints
 from google.appengine.api import search
 from google.appengine.ext import ndb
@@ -17,91 +18,26 @@ RADIUS = 'radius'
 
 METERS_PER_MILE = 1609.34
 
-# [START messages]
-class ReportStatus(messages.Enum):
-    OPEN = 0
-    IN_PROGRESS = 1
-    CLOSED = 2
-    
-
-class SendReportRequest(messages.Message):
-    latitude = messages.FloatField(1)
-    longitude = messages.FloatField(2)
-    status = messages.EnumField(ReportStatus, 3)
-
-class SendReportResponse(messages.Message):
-    report_id = messages.StringField(1)
-    
-   
-class RoadkillReportResponse(messages.Message):
-    latitude = messages.FloatField(1)
-    longitude = messages.FloatField(2)
-    timestamp = messages.StringField(3)
-    status = messages.EnumField(ReportStatus, 4)
-    report_id = messages.StringField(5)
-    
-class GetRadiusReportsRequest(messages.Message):
-    latitude = messages.FloatField(1)
-    longitude = messages.FloatField(2)
-    radius = messages.IntegerField(3)
-    limit = messages.IntegerField(4)
-
-class GetRadiusReportsResponse(messages.Message):
-    reports = messages.MessageField(RoadkillReportResponse, 1, repeated=True)
-    
-class CreateControlGroupRequest(messages.Message):
-    name = messages.StringField(1)
-    email = messages.StringField(2)
-    latitude = messages.FloatField(3)
-    longitude = messages.FloatField(4)
-    radius = messages.FloatField(5)
-    
-class CreateControlGroupResponse(messages.Message):
-    group_id = messages.StringField(1)
-    
-class GetNearbyGroupsRequest(messages.Message):
-    latitude = messages.FloatField(1)
-    longitude = messages.FloatField(2)
-        
-class GetNearbyGroupsResponse(messages.Message):
-    groups = messages.MessageField(CreateControlGroupRequest, 1, repeated=True)
-
-    
 ROADKILL_RESOURCE = endpoints.ResourceContainer(
     message_types.VoidMessage,
     report_id=messages.StringField(2))
     
 UPDATE_RESOURCE = endpoints.ResourceContainer(
-    SendReportRequest,
+    models.SendReportRequest,
     report_id=messages.StringField(2))
-# [END messages]
-
-class RoadkillReport(ndb.Model):
-    latitude=ndb.FloatProperty()
-    longitude=ndb.FloatProperty()
-    timestamp=ndb.DateTimeProperty(auto_now_add=True)
-    status=msgprop.EnumProperty(ReportStatus)
-    
-class ControlGroup(ndb.Model):
-    name=ndb.StringProperty()
-    email=ndb.StringProperty()
-    latitude=ndb.FloatProperty()
-    longitude=ndb.FloatProperty()
-    radius=ndb.FloatProperty()
-
 
 # [START roadkill_api]
 @endpoints.api(name='roadkill', version='v1')
 class RoadkillApi(remote.Service):
 
     @endpoints.method(
-        SendReportRequest,
-        SendReportResponse,
+        models.SendReportRequest,
+        models.SendReportResponse,
         path='roadkill',
         http_method='POST',
         name='report_roadkill')
     def report_roadkill(self, request):
-        report = RoadkillReport(latitude=request.latitude, longitude=request.longitude, status=ReportStatus.OPEN)
+        report = models.RoadkillReport(latitude=request.latitude, longitude=request.longitude, status=models.ReportStatus.OPEN)
         report_id = report.put().urlsafe()
         
         geopoint = search.GeoPoint(request.latitude, request.longitude)
@@ -112,23 +48,23 @@ class RoadkillApi(remote.Service):
         doc = search.Document(doc_id=report_id, fields=index_fields)
         search.Index(name=REPORT_INDEX_NAME).put(doc)
         
-        return SendReportResponse(report_id=report_id)
+        return models.SendReportResponse(report_id=report_id)
 
     @endpoints.method(
         ROADKILL_RESOURCE,
-        RoadkillReportResponse,
+        models.RoadkillReportResponse,
         path='roadkill/{report_id}',
         http_method='GET',
         name='roadkill')
     def get_roadkill_report(self, request):
         report_key = ndb.Key(urlsafe=request.report_id)
         report = report_key.get()
-        resp = RoadkillReportResponse(latitude=report.latitude, longitude=report.longitude, timestamp=str(report.timestamp), status=report.status)
+        resp = models.RoadkillReportResponse(latitude=report.latitude, longitude=report.longitude, timestamp=str(report.timestamp), status=report.status)
         return resp
         
     @endpoints.method(
-        GetRadiusReportsRequest,
-        GetRadiusReportsResponse,
+        models.GetRadiusReportsRequest,
+        models.GetRadiusReportsResponse,
         path='roadkill/radius',
         http_method='GET',
         name='roadkill_radius'
@@ -141,14 +77,14 @@ class RoadkillApi(remote.Service):
         report_id = doc.doc_id
         report_key = ndb.Key(urlsafe=report_id)
         ndb_report = report_key.get()
-        report = RoadkillReportResponse(latitude=ndb_report.latitude, longitude=ndb_report.longitude, timestamp=str(ndb_report.timestamp), status=ndb_report.status)
+        report = models.RoadkillReportResponse(latitude=ndb_report.latitude, longitude=ndb_report.longitude, timestamp=str(ndb_report.timestamp), status=ndb_report.status)
         reports.append(report)
-      resp = GetRadiusReportsResponse(reports=reports)
+      resp = models.GetRadiusReportsResponse(reports=reports)
       return resp
       
     @endpoints.method(
         UPDATE_RESOURCE,
-        SendReportResponse,
+        models.SendReportResponse,
         path='roadkill/{report_id}',
         http_method='PUT',
         name='update_roadkill'
@@ -158,11 +94,11 @@ class RoadkillApi(remote.Service):
       report = report_key.get()
       report.status = request.status
       report.put()
-      return SendReportResponse(report_id=request.report_id)
+      return models.SendReportResponse(report_id=request.report_id)
       
     @endpoints.method(
-        CreateControlGroupRequest,
-        CreateControlGroupResponse,
+        models.CreateControlGroupRequest,
+        models.CreateControlGroupResponse,
         path='control_group',
         http_method='POST',
         name='create_control_group'
@@ -180,11 +116,11 @@ class RoadkillApi(remote.Service):
       doc = search.Document(doc_id=group_id, fields=index_fields)
       search.Index(name=GROUP_INDEX_NAME).put(doc)
       
-      return CreateControlGroupResponse(group_id=group_id)
+      return models.CreateControlGroupResponse(group_id=group_id)
       
     @endpoints.method(
-        GetNearbyGroupsRequest,
-        GetNearbyGroupsResponse,
+        models.GetNearbyGroupsRequest,
+        models.GetNearbyGroupsResponse,
         path='control_group',
         http_method='GET',
         name='nearby_control_groups'
@@ -204,9 +140,9 @@ class RoadkillApi(remote.Service):
         group_id = doc.doc_id
         group_key = ndb.Key(urlsafe=group_id)
         ndb_group = group_key.get()
-        group = CreateControlGroupRequest(email=ndb_group.email, name=ndb_group.name, latitude=ndb_group.latitude, longitude=ndb_group.longitude, radius=ndb_group.radius / METERS_PER_MILE)
+        group = models.CreateControlGroupRequest(email=ndb_group.email, name=ndb_group.name, latitude=ndb_group.latitude, longitude=ndb_group.longitude, radius=ndb_group.radius / METERS_PER_MILE)
         groups.append(group)
-      resp = GetNearbyGroupsResponse(groups=groups)
+      resp = models.GetNearbyGroupsResponse(groups=groups)
       return resp
 # [END roadkill_api]
 
