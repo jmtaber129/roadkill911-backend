@@ -3,6 +3,11 @@ from google.appengine.ext.ndb import msgprop
 from protorpc import message_types
 from protorpc import messages
 
+# Location constants
+LOCATION = 'location'
+RADIUS = 'radius'
+METERS_PER_MILE = 1609.34
+
 # Proto messages.
 class ReportStatus(messages.Enum):
     OPEN = 0

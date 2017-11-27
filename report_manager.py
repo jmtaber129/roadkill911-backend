@@ -4,10 +4,6 @@ from google.appengine.api import search
 
 REPORT_INDEX_NAME = 'reportsearch'
 REPORT_ID = 'report_id'
-LOCATION = 'location'
-RADIUS = 'radius'
-
-METERS_PER_MILE = 1609.34
 
 class ReportManager:
   def create_report(self, request):
@@ -17,7 +13,7 @@ class ReportManager:
     geopoint = search.GeoPoint(request.latitude, request.longitude)
     index_fields = [
       search.AtomField(name=REPORT_ID, value=report_id),
-      search.GeoField(name=LOCATION, value=geopoint)
+      search.GeoField(name=models.LOCATION, value=geopoint)
     ]
     doc = search.Document(doc_id=report_id, fields=index_fields)
     search.Index(name=REPORT_INDEX_NAME).put(doc)
@@ -32,7 +28,7 @@ class ReportManager:
     
   def get_report_in_radius(self, request):
     reports = []
-    query = "distance({}, geopoint({},{})) < {}".format(LOCATION, request.latitude, request.longitude, request.radius * METERS_PER_MILE)
+    query = "distance({}, geopoint({},{})) < {}".format(models.LOCATION, request.latitude, request.longitude, request.radius * models.METERS_PER_MILE)
     results = search.Index(REPORT_INDEX_NAME).search(query)
     for doc in results:
       report_id = doc.doc_id
