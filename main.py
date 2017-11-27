@@ -1,5 +1,7 @@
 # [START imports]
 import models
+import report_manager
+
 import endpoints
 from google.appengine.api import search
 from google.appengine.ext import ndb
@@ -29,6 +31,8 @@ UPDATE_RESOURCE = endpoints.ResourceContainer(
 # [START roadkill_api]
 @endpoints.api(name='roadkill', version='v1')
 class RoadkillApi(remote.Service):
+    def __init__(self):
+      self.roadkill_report_manager = report_manager.ReportManager()
 
     @endpoints.method(
         models.SendReportRequest,
@@ -37,18 +41,7 @@ class RoadkillApi(remote.Service):
         http_method='POST',
         name='report_roadkill')
     def report_roadkill(self, request):
-        report = models.RoadkillReport(latitude=request.latitude, longitude=request.longitude, status=models.ReportStatus.OPEN)
-        report_id = report.put().urlsafe()
-        
-        geopoint = search.GeoPoint(request.latitude, request.longitude)
-        index_fields = [
-          search.AtomField(name=REPORT_ID, value=report_id),
-          search.GeoField(name=LOCATION, value=geopoint)
-        ]
-        doc = search.Document(doc_id=report_id, fields=index_fields)
-        search.Index(name=REPORT_INDEX_NAME).put(doc)
-        
-        return models.SendReportResponse(report_id=report_id)
+        return self.roadkill_report_manager.create_report(request)
 
     @endpoints.method(
         ROADKILL_RESOURCE,
@@ -57,10 +50,7 @@ class RoadkillApi(remote.Service):
         http_method='GET',
         name='roadkill')
     def get_roadkill_report(self, request):
-        report_key = ndb.Key(urlsafe=request.report_id)
-        report = report_key.get()
-        resp = models.RoadkillReportResponse(latitude=report.latitude, longitude=report.longitude, timestamp=str(report.timestamp), status=report.status)
-        return resp
+        return self.roadkill_report_manager.get_report(request.report_id)
         
     @endpoints.method(
         models.GetRadiusReportsRequest,
@@ -70,17 +60,7 @@ class RoadkillApi(remote.Service):
         name='roadkill_radius'
     )
     def get_roadkill_in_radius(self, request):
-      reports = []
-      query = "distance({}, geopoint({},{})) < {}".format(LOCATION, request.latitude, request.longitude, request.radius * METERS_PER_MILE)
-      results = search.Index(REPORT_INDEX_NAME).search(query)
-      for doc in results:
-        report_id = doc.doc_id
-        report_key = ndb.Key(urlsafe=report_id)
-        ndb_report = report_key.get()
-        report = models.RoadkillReportResponse(latitude=ndb_report.latitude, longitude=ndb_report.longitude, timestamp=str(ndb_report.timestamp), status=ndb_report.status)
-        reports.append(report)
-      resp = models.GetRadiusReportsResponse(reports=reports)
-      return resp
+      return self.roadkill_report_manager.get_report_in_radius(request)
       
     @endpoints.method(
         UPDATE_RESOURCE,
@@ -90,11 +70,7 @@ class RoadkillApi(remote.Service):
         name='update_roadkill'
     )
     def update_roadkill_report(self, request):
-      report_key = ndb.Key(urlsafe=request.report_id)
-      report = report_key.get()
-      report.status = request.status
-      report.put()
-      return models.SendReportResponse(report_id=request.report_id)
+      return self.roadkill_report_manager.update_report(request)
       
     @endpoints.method(
         models.CreateControlGroupRequest,
