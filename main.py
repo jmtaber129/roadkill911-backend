@@ -1,7 +1,7 @@
 # [START imports]
 import models
-import report_manager
-import control_group_manager
+from report_manager import ReportManager
+from control_group_manager import ControlGroupManager
 
 import endpoints
 from google.appengine.api import search
@@ -24,8 +24,8 @@ UPDATE_RESOURCE = endpoints.ResourceContainer(
 @endpoints.api(name='roadkill', version='v1')
 class RoadkillApi(remote.Service):
     def __init__(self):
-      self.roadkill_report_manager = report_manager.ReportManager()
-      self.group_manager = control_group_manager.ControlGroupManager()
+      self.roadkill_report_manager = ReportManager()
+      self.group_manager = ControlGroupManager()
 
     @endpoints.method(
         models.SendReportRequest,
