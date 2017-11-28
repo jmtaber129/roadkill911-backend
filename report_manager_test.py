@@ -40,6 +40,7 @@ class ReportManagerTest(unittest.TestCase):
     self.assertEqual(request.latitude, report.latitude)
     self.assertEqual(request.longitude, report.longitude)
     self.assertEqual(request.status, report.status)
+    self.assertEqual(request.report_type, report.report_type)
 
   def test_update(self):
     request = self._make_report_request()
@@ -50,6 +51,7 @@ class ReportManagerTest(unittest.TestCase):
     self.assertEqual(request.latitude, report.latitude)
     self.assertEqual(request.longitude, report.longitude)
     self.assertEqual(request.status, report.status)
+    self.assertEqual(request.report_type, report.report_type)
 
   def test_lookup_radius(self):
     request = self._make_report_request()
@@ -76,7 +78,7 @@ class ReportManagerTest(unittest.TestCase):
   def _make_report_request(self):
     lat = LOC1[0]
     lon = LOC1[1]
-    request = models.SendReportRequest(latitude=lat, longitude=lon, status=models.ReportStatus.OPEN)
+    request = models.SendReportRequest(latitude=lat, longitude=lon, status=models.ReportStatus.OPEN, report_type=models.ReportType.INJURED)
     return request
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ REPORT_ID = 'report_id'
 
 class ReportManager:
   def create_report(self, request):
-    report = models.RoadkillReport(latitude=request.latitude, longitude=request.longitude, status=models.ReportStatus.OPEN)
+    report = models.RoadkillReport(latitude=request.latitude, longitude=request.longitude, status=models.ReportStatus.OPEN, report_type=request.report_type)
     report_id = report.put().urlsafe()
     
     geopoint = search.GeoPoint(request.latitude, request.longitude)
@@ -23,7 +23,7 @@ class ReportManager:
   def get_report(self, report_id):
     report_key = ndb.Key(urlsafe=report_id)
     report = report_key.get()
-    resp = models.RoadkillReportResponse(latitude=report.latitude, longitude=report.longitude, timestamp=str(report.timestamp), status=report.status, report_id=report_id)
+    resp = models.RoadkillReportResponse(latitude=report.latitude, longitude=report.longitude, timestamp=str(report.timestamp), status=report.status, report_type=report.report_type, report_id=report_id)
     return resp
     
   def get_report_in_radius(self, request):
@@ -34,7 +34,7 @@ class ReportManager:
       report_id = doc.doc_id
       report_key = ndb.Key(urlsafe=report_id)
       ndb_report = report_key.get()
-      report = models.RoadkillReportResponse(latitude=ndb_report.latitude, longitude=ndb_report.longitude, timestamp=str(ndb_report.timestamp), status=ndb_report.status, report_id=report_id)
+      report = models.RoadkillReportResponse(latitude=ndb_report.latitude, longitude=ndb_report.longitude, timestamp=str(ndb_report.timestamp), status=ndb_report.status, report_type=ndb_report.report_type, report_id=report_id)
       reports.append(report)
     resp = models.GetRadiusReportsResponse(reports=reports)
     return resp
