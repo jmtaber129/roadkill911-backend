@@ -63,7 +63,7 @@ class RoadkillApi(remote.Service):
     name='update_roadkill'
   )
   def update_roadkill_report(self, request):
-  return self.roadkill_report_manager.update_report(request, request.report_id)
+    return self.roadkill_report_manager.update_report(request, request.report_id)
     
   @endpoints.method(
     models.CreateControlGroupRequest,
