@@ -69,7 +69,8 @@ class ReportManagerTest(unittest.TestCase):
     request.longitude = LOC4[1]
     response = self.manager.create_report(request)
     report_id4 = response.report_id
-    radius_request = models.GetRadiusReportsRequest(latitude=LOC1[0], longitude=LOC1[1], limit=5, radius=10)
+    radius_request = models.GetRadiusReportsRequest(latitude=LOC1[0], 
+      longitude=LOC1[1], limit=5, radius=10)
     radius_response = self.manager.get_report_in_radius(radius_request)
     in_radius_ids = [report_id1, report_id2, report_id3]
     for report in radius_response.reports:
@@ -78,7 +79,10 @@ class ReportManagerTest(unittest.TestCase):
   def _make_report_request(self):
     lat = LOC1[0]
     lon = LOC1[1]
-    request = models.SendReportRequest(latitude=lat, longitude=lon, status=models.ReportStatus.OPEN, report_type=models.ReportType.INJURED)
+    request = models.SendReportRequest(latitude=lat, 
+      longitude=lon, 
+      status=models.ReportStatus.OPEN, 
+      report_type=models.ReportType.INJURED)
     return request
 
 if __name__ == '__main__':
