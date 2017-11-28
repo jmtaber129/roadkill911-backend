@@ -18,6 +18,8 @@ class ReportManager:
     doc = search.Document(doc_id=report_id, fields=index_fields)
     search.Index(name=REPORT_INDEX_NAME).put(doc)
     
+    # TODO: Send email(s) to animal control groups.
+
     return models.SendReportResponse(report_id=report_id)
     
   def get_report(self, report_id):

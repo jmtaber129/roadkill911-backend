@@ -48,9 +48,10 @@ class GetRadiusReportsResponse(messages.Message):
 class CreateControlGroupRequest(messages.Message):
   name = messages.StringField(1)
   email = messages.StringField(2)
-  latitude = messages.FloatField(3)
-  longitude = messages.FloatField(4)
-  radius = messages.FloatField(5)
+  reporting_criteria = messages.StringField(3)
+  latitude = messages.FloatField(4)
+  longitude = messages.FloatField(5)
+  radius = messages.FloatField(6)
     
 class CreateControlGroupResponse(messages.Message):
   group_id = messages.StringField(1)
@@ -73,6 +74,7 @@ class RoadkillReport(ndb.Model):
 class ControlGroup(ndb.Model):
   name=ndb.StringProperty()
   email=ndb.StringProperty()
+  reporting_criteria=ndb.StringProperty()
   latitude=ndb.FloatProperty()
   longitude=ndb.FloatProperty()
   radius=ndb.FloatProperty()

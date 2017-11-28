@@ -5,9 +5,14 @@ from google.appengine.api import search
 GROUP_INDEX_NAME = 'groupsearch'
 GROUP_ID = 'group_id'
 
+MAX_RADIUS = 200 * models.METERS_PER_MILE
+
 class ControlGroupManager:
   def create_group(self, request):
-    group = models.ControlGroup(name=request.name, email=request.email, latitude=request.latitude, longitude=request.longitude, radius=request.radius*models.METERS_PER_MILE)
+    if radius > MAX_RADIUS:
+      # Error handling
+      pass
+    group = models.ControlGroup(name=request.name, email=request.email, reporting_criteria=request.reporting_criteria, latitude=request.latitude, longitude=request.longitude, radius=request.radius*models.METERS_PER_MILE)
     group_id = group.put().urlsafe()
     
     geopoint = search.GeoPoint(request.latitude, request.longitude)
@@ -23,7 +28,7 @@ class ControlGroupManager:
     
   def get_nearby_groups(self, request):
     groups = []
-    query_string = 'distance({}, geopoint({},{})) < 10000000'.format(models.LOCATION, request.latitude, request.longitude)
+    query_string = 'distance({}, geopoint({},{})) < {}'.format(models.LOCATION, request.latitude, request.longitude, MAX_RADIUS)
     radius_expression = search.FieldExpression(name='dist', expression='distance({}, geopoint({},{})) - radius'.format(models.LOCATION, request.latitude, request.longitude))
     query_options = search.QueryOptions(returned_expressions=[radius_expression])
     query = search.Query(query_string=query_string, options=query_options)
