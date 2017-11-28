@@ -55,6 +55,7 @@ class ControlGroupManager:
       ndb_group = group_key.get()
       group = models.CreateControlGroupRequest(email=ndb_group.email, 
         name=ndb_group.name, 
+        reporting_criteria=ndb_group.reporting_criteria,
         latitude=ndb_group.latitude, 
         longitude=ndb_group.longitude, 
         radius=ndb_group.radius / models.METERS_PER_MILE)
