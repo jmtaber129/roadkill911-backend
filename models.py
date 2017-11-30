@@ -18,12 +18,19 @@ class ReportType(messages.Enum):
   DEAD = 0
   INJURED = 1
   STRAY = 2
-    
+
+class AnimalDescription(messages.Message):
+  size = messages.StringField(1)
+  animal_type = messages.StringField(2)
+  color = messages.StringField(3)
+
 class SendReportRequest(messages.Message):
   latitude = messages.FloatField(1)
   longitude = messages.FloatField(2)
   status = messages.EnumField(ReportStatus, 3)
   report_type = messages.EnumField(ReportType, 4)
+  group_ids = messages.StringField(5, repeated=True)
+  description = messages.MessageField(AnimalDescription, 6)
 
 class SendReportResponse(messages.Message):
   report_id = messages.StringField(1)
@@ -35,6 +42,7 @@ class RoadkillReportResponse(messages.Message):
   status = messages.EnumField(ReportStatus, 4)
   report_type = messages.EnumField(ReportType, 5)
   report_id = messages.StringField(6)
+  description = messages.MessageField(AnimalDescription, 7)
     
 class GetRadiusReportsRequest(messages.Message):
   latitude = messages.FloatField(1)
@@ -70,6 +78,7 @@ class RoadkillReport(ndb.Model):
   timestamp=ndb.DateTimeProperty(auto_now_add=True)
   report_type=msgprop.EnumProperty(ReportType)
   status=msgprop.EnumProperty(ReportStatus)
+  description=msgprop.MessageProperty(AnimalDescription)
     
 class ControlGroup(ndb.Model):
   name=ndb.StringProperty()

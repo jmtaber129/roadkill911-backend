@@ -10,7 +10,8 @@ class ReportManager:
     report = models.RoadkillReport(latitude=request.latitude, 
       longitude=request.longitude, 
       status=models.ReportStatus.OPEN, 
-      report_type=request.report_type)
+      report_type=request.report_type,
+      description=request.description)
     report_id = report.put().urlsafe()
     
     geopoint = search.GeoPoint(request.latitude, request.longitude)
@@ -21,6 +22,10 @@ class ReportManager:
     doc = search.Document(doc_id=report_id, fields=index_fields)
     search.Index(name=REPORT_INDEX_NAME).put(doc)
     
+    # TODO: Get information for animal control group IDs submitted.
+    # TODO: Construct link for Google Maps static map image for report.
+    # TODO: Construct link to report web page (once web page is implemented and
+    # deployed).
     # TODO: Send email(s) to animal control groups.
 
     return models.SendReportResponse(report_id=report_id)
@@ -33,7 +38,8 @@ class ReportManager:
       timestamp=str(report.timestamp), 
       status=report.status, 
       report_type=report.report_type, 
-      report_id=report_id)
+      report_id=report_id,
+      description=report.description)
     return resp
     
   def get_report_in_radius(self, request):
@@ -52,7 +58,8 @@ class ReportManager:
         timestamp=str(ndb_report.timestamp), 
         status=ndb_report.status, 
         report_type=ndb_report.report_type, 
-        report_id=report_id)
+        report_id=report_id,
+        description=ndb_report.description)
       reports.append(report)
     resp = models.GetRadiusReportsResponse(reports=reports)
     return resp
