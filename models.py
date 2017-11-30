@@ -43,6 +43,7 @@ class RoadkillReportResponse(messages.Message):
   report_type = messages.EnumField(ReportType, 5)
   report_id = messages.StringField(6)
   description = messages.MessageField(AnimalDescription, 7)
+  group_ids = messages.StringField(8, repeated=True)
     
 class GetRadiusReportsRequest(messages.Message):
   latitude = messages.FloatField(1)
@@ -79,6 +80,7 @@ class RoadkillReport(ndb.Model):
   report_type=msgprop.EnumProperty(ReportType)
   status=msgprop.EnumProperty(ReportStatus)
   description=msgprop.MessageProperty(AnimalDescription)
+  group_ids=ndb.StringProperty(repeated=True)
     
 class ControlGroup(ndb.Model):
   name=ndb.StringProperty()

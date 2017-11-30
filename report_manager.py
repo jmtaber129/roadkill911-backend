@@ -1,17 +1,23 @@
 import models
+from control_group_manager import ControlGroupManager
 from google.appengine.ext import ndb
 from google.appengine.api import search
+from google.appengine.api import mail
 
 REPORT_INDEX_NAME = 'reportsearch'
 REPORT_ID = 'report_id'
 
 class ReportManager:
+  def __init__(self):
+    self.group_manager = ControlGroupManager()
+
   def create_report(self, request):
     report = models.RoadkillReport(latitude=request.latitude, 
       longitude=request.longitude, 
-      status=models.ReportStatus.OPEN, 
+      status=models.ReportStatus.OPEN,
       report_type=request.report_type,
-      description=request.description)
+      description=request.description,
+      group_ids=request.group_ids)
     report_id = report.put().urlsafe()
     
     geopoint = search.GeoPoint(request.latitude, request.longitude)
@@ -23,10 +29,43 @@ class ReportManager:
     search.Index(name=REPORT_INDEX_NAME).put(doc)
     
     # TODO: Get information for animal control group IDs submitted.
+    groups = []
+    for group_id in request.group_ids:
+      groups.append(self.group_manager.get_group(group_id))
+    #print(groups)
     # TODO: Construct link for Google Maps static map image for report.
+    map_image_link = ('https://maps.googleapis.com/maps/api/staticmap?'
+      'markers={},{}&zoom=14&size=640x400').format(
+        request.latitude, request.longitude)
+    #print(map_image_link)
     # TODO: Construct link to report web page (once web page is implemented and
     # deployed).
     # TODO: Send email(s) to animal control groups.
+    email_body = """<html>
+<body>
+<p>Roadkill911 control group,</p>
+
+<p>A new report has been submitted to your group.</p>
+
+<p>Report link: {}</p>
+
+<img width=640 height=400 src="{}"/>
+
+<p>--Roadkill911</p>
+</body>
+</html>
+""".format('http://www.placeholder.com', map_image_link)
+
+    print(email_body)
+
+    email = mail.EmailMessage(
+      sender='noreply@roadkill911-180223.appspotmail.com',
+      to='jmtaber129@gmail.com',
+      subject='New Roadkill911 Report')
+
+    email.html = email_body
+
+    email.send()
 
     return models.SendReportResponse(report_id=report_id)
     
@@ -39,7 +78,8 @@ class ReportManager:
       status=report.status, 
       report_type=report.report_type, 
       report_id=report_id,
-      description=report.description)
+      description=report.description,
+      group_ids=report.group_ids)
     return resp
     
   def get_report_in_radius(self, request):
@@ -59,7 +99,8 @@ class ReportManager:
         status=ndb_report.status, 
         report_type=ndb_report.report_type, 
         report_id=report_id,
-        description=ndb_report.description)
+        description=ndb_report.description,
+        group_ids=ndb_report.group_ids)
       reports.append(report)
     resp = models.GetRadiusReportsResponse(reports=reports)
     return resp

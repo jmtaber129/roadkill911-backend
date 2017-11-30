@@ -62,3 +62,8 @@ class ControlGroupManager:
       groups.append(group)
     resp = models.GetNearbyGroupsResponse(groups=groups)
     return resp
+
+  def get_group(self, group_id):
+    group_key = ndb.Key(urlsafe=group_id)
+    ndb_group = group_key.get()
+    return ndb_group
