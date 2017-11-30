@@ -9,7 +9,7 @@ MAX_RADIUS = 200 * models.METERS_PER_MILE
 
 class ControlGroupManager:
   def create_group(self, request):
-    if radius > MAX_RADIUS:
+    if request.radius > MAX_RADIUS:
       # Error handling
       pass
     group = models.ControlGroup(name=request.name, 
