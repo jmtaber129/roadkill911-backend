@@ -1,0 +1,22 @@
+
+  <br>
+  Animal Control Group Registration<br>
+  <form ng-submit="submit()">
+    <table>
+      <tr>
+        <td>Group Name:</td> <td><input type="text" ng-model="name"></td>
+      </tr>
+      <tr>
+        <td>Email: </td><td><input type="text" ng-model="email"></td>
+      </tr>
+    </table>
+    <br>
+    Location: ({{lat}},{{lng}}) Radius: <input type="text" ng-change="updateRadius()" ng-model="radius">
+    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <div id="map"></div>
+    <br>
+    Reporting criteria (e.g. inside Lubbock County, outside City of Lubbock):<br>
+    <input type="textarea" ng-model="reporting_criteria">
+    <br><br>
+    <input type="submit" value="Submit">
+  </form>
