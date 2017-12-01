@@ -161,6 +161,18 @@ app.controller('ReportCtrl', ['$scope','$routeParams','roadkillApi', function ($
   $scope.report_id = $routeParams.report_id;
   roadkillApi.roadkill({report_id: $routeParams.report_id}).execute((resp) => {
     console.log(resp);
+    $scope.$apply(() => {
+      $scope.report = resp;
+    })
+    
+    var map = new google.maps.Map(document.getElementById('map'), {
+      center: {lat: resp.latitude, lng: resp.longitude},
+      zoom: 13
+    }); 
+    marker = new google.maps.Marker({
+      position: {lat: resp.latitude, lng: resp.longitude},
+      map: map,
+    });
   });
 }]);
 

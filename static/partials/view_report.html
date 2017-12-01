@@ -1,1 +1,15 @@
-{{report_id}}
+<br>
+Report ID: {{report_id}}
+<br>
+Report Type: {{report.report_type}}
+<br>
+Report Status: {{report.status}}
+<br>
+Description:
+<ul>
+  <li>Type: {{report.description.animal_type}}</li>
+  <li>Size: {{report.description.size}}</li>
+  <li>Color: {{report.description.color}}</li>
+</ul>
+Location:
+<div id="map"></div>
