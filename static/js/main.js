@@ -39,7 +39,9 @@ app.controller('PageCtrl', ['$scope', function($scope) {
 }]);
 
 app.controller('RegisterCtrl', ['$scope', 'roadkillApi', function ($scope, roadkillApi) {
+  $scope.submitted=false;
   $scope.submit = () => {
+    $scope.submitted = false;
     roadkillApi.create_control_group({
       name: $scope.name,
       email: $scope.email,
@@ -48,6 +50,9 @@ app.controller('RegisterCtrl', ['$scope', 'roadkillApi', function ($scope, roadk
       radius: $scope.radius,
       reporting_criteria: $scope.reporting_criteria,
     }).execute(resp => {
+      $scope.$apply(() => {
+        $scope.submitted = true;
+      })
       console.log(resp);
     })
     //console.log($scope.name);
