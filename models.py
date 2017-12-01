@@ -64,13 +64,22 @@ class CreateControlGroupRequest(messages.Message):
     
 class CreateControlGroupResponse(messages.Message):
   group_id = messages.StringField(1)
+
+class ControlGroupResponse(messages.Message):
+  name = messages.StringField(1)
+  email = messages.StringField(2)
+  reporting_criteria = messages.StringField(3)
+  latitude = messages.FloatField(4)
+  longitude = messages.FloatField(5)
+  radius = messages.FloatField(6)
+  group_id = messages.StringField(7)
     
 class GetNearbyGroupsRequest(messages.Message):
   latitude = messages.FloatField(1)
   longitude = messages.FloatField(2)
         
 class GetNearbyGroupsResponse(messages.Message):
-  groups = messages.MessageField(CreateControlGroupRequest, 1, repeated=True)
+  groups = messages.MessageField(ControlGroupResponse, 1, repeated=True)
 
 # NDB models.
 class RoadkillReport(ndb.Model):

@@ -53,12 +53,13 @@ class ControlGroupManager:
       group_id = doc.doc_id
       group_key = ndb.Key(urlsafe=group_id)
       ndb_group = group_key.get()
-      group = models.CreateControlGroupRequest(email=ndb_group.email, 
+      group = models.ControlGroupResponse(email=ndb_group.email, 
         name=ndb_group.name, 
         reporting_criteria=ndb_group.reporting_criteria,
         latitude=ndb_group.latitude, 
         longitude=ndb_group.longitude, 
-        radius=ndb_group.radius / models.METERS_PER_MILE)
+        radius=ndb_group.radius / models.METERS_PER_MILE,
+        group_id=group_id)
       groups.append(group)
     resp = models.GetNearbyGroupsResponse(groups=groups)
     return resp
