@@ -17,6 +17,14 @@ handlers:
 - url: /_ah/api/.*
   script: main.api
 
+- url: /(.+)
+  static_files: static/\1
+  upload: static/.*
+
+- url: /
+  static_files: static/index.html
+  upload: static/index.html
+
 libraries:
 - name: pycrypto
   version: 2.6
