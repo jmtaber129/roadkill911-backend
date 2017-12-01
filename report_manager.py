@@ -32,15 +32,16 @@ class ReportManager:
     groups = []
     for group_id in request.group_ids:
       groups.append(self.group_manager.get_group(group_id))
-    #print(groups)
-    # TODO: Construct link for Google Maps static map image for report.
+
     map_image_link = ('https://maps.googleapis.com/maps/api/staticmap?'
       'markers={},{}&zoom=14&size=640x400').format(
         request.latitude, request.longitude)
-    #print(map_image_link)
-    # TODO: Construct link to report web page (once web page is implemented and
-    # deployed).
+
+    report_page = ("https://roadkill911-180223.appspot.com/#/"
+      "view_report/{}").format(report_id)
+
     # TODO: Send email(s) to animal control groups.
+    
     email_body = """<html>
 <body>
 <p>Roadkill911 control group,</p>
@@ -54,7 +55,7 @@ class ReportManager:
 <p>--Roadkill911</p>
 </body>
 </html>
-""".format('http://www.placeholder.com', map_image_link)
+""".format(report_page, map_image_link)
 
     print(email_body)
 
