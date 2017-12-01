@@ -90,6 +90,13 @@ app.controller('RegisterCtrl', ['$scope', 'roadkillApi', function ($scope, roadk
       fillColor: '#AA0000'
     });
     circle.bindTo('center', marker, 'position');
+    
+    marker.addListener('drag', () => {
+      $scope.$apply(() => {
+        $scope.lat = marker.position.lat();
+        $scope.lng = marker.position.lng();
+      })
+    });
   }
 
   makeMarker({lat: $scope.lat, lng: $scope.lng});
@@ -133,13 +140,6 @@ app.controller('RegisterCtrl', ['$scope', 'roadkillApi', function ($scope, roadk
 
       // Create a marker for each place.
       makeMarker(place.geometry.location);
-    
-      marker.addListener('drag', () => {
-        $scope.$apply(() => {
-          $scope.lat = marker.position.lat();
-          $scope.lng = marker.position.lng();
-        })
-      });
 
       if (place.geometry.viewport) {
         // Only geocodes have viewport.
