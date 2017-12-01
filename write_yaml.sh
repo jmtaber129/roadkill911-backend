@@ -1,0 +1,1 @@
+cat app_templ.yaml > app.yaml
