@@ -29,9 +29,6 @@ class ReportManager:
     search.Index(name=REPORT_INDEX_NAME).put(doc)
     
     # TODO: Get information for animal control group IDs submitted.
-    groups = []
-    for group_id in request.group_ids:
-      groups.append(self.group_manager.get_group(group_id))
 
     map_image_link = ('https://maps.googleapis.com/maps/api/staticmap?'
       'markers={},{}&zoom=14&size=640x400').format(
@@ -43,30 +40,31 @@ class ReportManager:
     # TODO: Send email(s) to animal control groups.
     
     email_body = """<html>
-<body>
-<p>Roadkill911 control group,</p>
+      <body>
+      <p>Roadkill911 control group,</p>
 
-<p>A new report has been submitted to your group.</p>
+      <p>A new report has been submitted to your group.</p>
 
-<p>Report link: {}</p>
+      <p>Report link: {}</p>
 
-<img width=640 height=400 src="{}"/>
+      <img width=640 height=400 src="{}"/>
 
-<p>--Roadkill911</p>
-</body>
-</html>
-""".format(report_page, map_image_link)
+      <p>--Roadkill911</p>
+      </body>
+      </html>
+      """.format(report_page, map_image_link)
 
-    print(email_body)
+    for group_id in request.group_ids:
+      group = self.group_manager.get_group(group_id)
+      if group.email:
+        email = mail.EmailMessage(
+          sender='noreply@roadkill911-180223.appspotmail.com',
+          to=group.email,
+          subject='New Roadkill911 Report')
 
-    email = mail.EmailMessage(
-      sender='noreply@roadkill911-180223.appspotmail.com',
-      to='jmtaber129@gmail.com',
-      subject='New Roadkill911 Report')
+        email.html = email_body
 
-    email.html = email_body
-
-    email.send()
+        email.send()
 
     return models.SendReportResponse(report_id=report_id)
     
